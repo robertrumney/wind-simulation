@@ -1,14 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class WindManager : MonoBehaviour
 {
     public float windForce = 10.0f;
+    public float dayLengthInSeconds = 60.0f;
+    public float turbulenceIntensity = 1.0f;
+    public float turbulenceScale = 0.1f;
+    private Vector3 initialWindDirection;
+    private float initialWindForce;
+
+
     public Vector3 windDirection = Vector3.right;
+
     public bool dynamicRigidbodies = true;
     public bool dynamicWind = false;
-    public float dayLengthInSeconds = 60.0f;
+    
 
     private List<Rigidbody> cachedRigidbodies;
     private float elapsedTime = 0.0f;
@@ -19,6 +26,9 @@ public class WindManager : MonoBehaviour
         {
             CacheRigidbodies();
         }
+
+        initialWindDirection = windDirection;
+        initialWindForce = windForce;
     }
 
     private void FixedUpdate()
@@ -30,6 +40,8 @@ public class WindManager : MonoBehaviour
             UpdateWind();
         }
 
+        ApplyTurbulence();
+
         foreach (Rigidbody rb in allRigidbodies)
         {
             if (rb != null && !rb.isKinematic)
@@ -37,6 +49,19 @@ public class WindManager : MonoBehaviour
                 rb.AddForce(windDirection.normalized * windForce);
             }
         }
+    }
+
+    private void ApplyTurbulence()
+    {
+        float xTurbulence = Mathf.PerlinNoise(Time.time * turbulenceScale, 0) * 2 - 1;
+        float yTurbulence = Mathf.PerlinNoise(0, Time.time * turbulenceScale) * 2 - 1;
+        float zTurbulence = Mathf.PerlinNoise(Time.time * turbulenceScale, Time.time * turbulenceScale) * 2 - 1;
+
+        Vector3 turbulence = new Vector3(xTurbulence, yTurbulence, zTurbulence) * turbulenceIntensity;
+        windDirection = initialWindDirection + turbulence;
+
+        float forceTurbulence = (Mathf.PerlinNoise(Time.time * turbulenceScale, 1000) * 2 - 1) * turbulenceIntensity;
+        windForce = initialWindForce + forceTurbulence;
     }
 
     private void CacheRigidbodies()
