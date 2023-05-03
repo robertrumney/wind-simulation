@@ -3,22 +3,21 @@ using System.Collections.Generic;
 
 public class WindManager : MonoBehaviour
 {
+    public Vector3 windDirection = Vector3.right;
+    private Vector3 initialWindDirection;
+ 
     public float windForce = 10.0f;
     public float dayLengthInSeconds = 60.0f;
     public float turbulenceIntensity = 1.0f;
     public float turbulenceScale = 0.1f;
-    private Vector3 initialWindDirection;
-    private float initialWindForce;
-
-
-    public Vector3 windDirection = Vector3.right;
-
+    
+    public bool applyTurbulence = false;
     public bool dynamicRigidbodies = true;
     public bool dynamicWind = false;
-    
 
     private List<Rigidbody> cachedRigidbodies;
     private float elapsedTime = 0.0f;
+    private float initialWindForce;
 
     private void Start()
     {
@@ -39,9 +38,12 @@ public class WindManager : MonoBehaviour
         {
             UpdateWind();
         }
-
-        ApplyTurbulence();
-
+        
+        if (applyTurbulence)
+        {
+            ApplyTurbulence();
+        }
+        
         foreach (Rigidbody rb in allRigidbodies)
         {
             if (rb != null && !rb.isKinematic)
