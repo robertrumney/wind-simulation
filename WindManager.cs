@@ -40,6 +40,7 @@ public class WindManager : MonoBehaviour
     public int noiseSeed = 0;
 
     private readonly List<Rigidbody> targets = new List<Rigidbody>();
+    
     private float rescanTimer;
     private float dayClock;
     private Vector3 noiseOffsetA;
@@ -49,7 +50,7 @@ public class WindManager : MonoBehaviour
     private float gustPhase;
     private float fixedT;
 
-    void OnEnable()
+    private void OnEnable()
     {
         if (!dynamicRigidbodies) Rescan();
         var rnd = noiseSeed == 0 ? new System.Random() : new System.Random(noiseSeed);
@@ -57,7 +58,7 @@ public class WindManager : MonoBehaviour
         noiseOffsetB = new Vector3((float)rnd.NextDouble() * 1000f, (float)rnd.NextDouble() * 1000f, (float)rnd.NextDouble() * 1000f);
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         fixedT += Time.fixedDeltaTime;
         if (dynamicRigidbodies)
@@ -132,7 +133,7 @@ public class WindManager : MonoBehaviour
         }
     }
 
-    void Rescan()
+    private void Rescan()
     {
         targets.Clear();
         var rbs = GameObject.FindObjectsOfType<Rigidbody>();
@@ -146,12 +147,13 @@ public class WindManager : MonoBehaviour
         }
     }
 
-    Vector3 Turbulence(float t, float scale, int octaves)
+    private Vector3 Turbulence(float t, float scale, int octaves)
     {
         float f = Mathf.Max(0.0001f, scale);
         float amp = 1f;
         float sumX = 0f, sumY = 0f, sumZ = 0f;
         float freq = f;
+        
         for (int o = 0; o < Mathf.Max(1, octaves); o++)
         {
             float nx = Perlin3D(noiseOffsetA + new Vector3(t * freq, 0f, 0f));
@@ -163,15 +165,17 @@ public class WindManager : MonoBehaviour
             freq *= 2f;
             amp *= 0.5f;
         }
+        
         return new Vector3(sumX, sumY, sumZ);
     }
 
-    float Turbulence1D(float t, float scale, int octaves)
+    private float Turbulence1D(float t, float scale, int octaves)
     {
         float f = Mathf.Max(0.0001f, scale);
         float amp = 1f;
         float sum = 0f;
         float freq = f;
+        
         for (int o = 0; o < Mathf.Max(1, octaves); o++)
         {
             float n = Perlin3D(noiseOffsetB + new Vector3(t * freq, t * 0.37f * freq, t * 0.73f * freq));
@@ -179,14 +183,16 @@ public class WindManager : MonoBehaviour
             freq *= 2f;
             amp *= 0.5f;
         }
+        
         return sum;
     }
 
-    float Perlin3D(Vector3 p)
+    private float Perlin3D(Vector3 p)
     {
         float xy = Mathf.PerlinNoise(p.x, p.y);
         float yz = Mathf.PerlinNoise(p.y, p.z);
         float zx = Mathf.PerlinNoise(p.z, p.x);
+        
         return (xy + yz + zx) / 3f;
     }
 
@@ -195,6 +201,7 @@ public class WindManager : MonoBehaviour
         float yaw = dynamicWind ? yawOverDay.Evaluate(dayClock) : 0f;
         Vector3 dir = Quaternion.Euler(0f, yaw, 0f) * baseDirection.normalized;
         if (applyTurbulence) dir = (dir + Turbulence(fixedT, turbulenceScale, turbulenceOctaves)).normalized;
+        
         return dir;
     }
 
@@ -203,6 +210,7 @@ public class WindManager : MonoBehaviour
         float forceMul = dynamicWind ? Mathf.Max(0f, forceOverDay.Evaluate(dayClock)) : 1f;
         if (applyTurbulence) forceMul *= Mathf.Clamp01(1f + Turbulence1D(fixedT, turbulenceScale * 0.75f, turbulenceOctaves) * 0.25f);
         if (gustsEnabled && gustActive) forceMul *= Mathf.Max(0.001f, 1f + gustEnvelope.Evaluate(Mathf.Clamp01(gustPhase)) * gustIntensity);
+        
         return Mathf.Clamp(baseForce * forceMul, minForce, maxForce);
     }
 }
