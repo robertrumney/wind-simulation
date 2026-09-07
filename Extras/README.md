@@ -46,7 +46,7 @@ Fired when a valid rigidbody exits the zone (only if `trackTriggers` is true).
 
 ## Notes
 
-- The `WindZone` does **not** apply wind forces directly. It is designed to work alongside external systems (such as a WindManager).
+- The `WindZone` does **not** apply wind forces directly. It is designed to work alongside the `WindManager` system.
 - You can assign multiple colliders to a single zone object. All will be evaluated for overlap and falloff calculations.
 - This system works best with box or capsule colliders. Mesh colliders are supported but may be more performance-intensive.
 
